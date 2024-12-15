@@ -125,7 +125,7 @@ function About() {
               whileInView={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.05, duration: 0.1 }} // Ajoute l'effet de mise à l'échelle au survol
               viewport={{ once: true }}
-              className="bg-gray-800 p-6 rounded-lg shadow-lg text-gray-300 hover:shadow-2xl duration-300  hover:bg-gray-700 transform hover:text-"
+              className="bg-gray-800 p-6 rounded-lg shadow-lg text-gray-300"
             >
               <div className="flex justify-center mb-4">
                 <img src={chessLogo} alt="Jeux d'échecs" className="w-16 h-16 object-contain" />
@@ -146,7 +146,7 @@ function About() {
               whileInView={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.05, duration: 0.1 }} // Ajoute l'effet de mise à l'échelle au survol
               viewport={{ once: true }}
-              className="bg-gray-800 p-6 rounded-lg shadow-lg text-gray-300 hover:shadow-2xl duration-300  hover:bg-gray-700 transform hover:text-"
+              className="bg-gray-800 p-6 rounded-lg shadow-lg text-gray-300"
             >
               <div className="flex justify-center mb-4">
                 <img src={techLogo} alt="Jeux d'échecs" className="w-16 h-16 object-contain" />
@@ -167,7 +167,7 @@ function About() {
               whileInView={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.05, duration: 0.1 }} // Ajoute l'effet de mise à l'échelle au survol
               viewport={{ once: true }}
-              className="bg-gray-800 p-6 rounded-lg shadow-lg text-gray-300 hover:shadow-2xl hover:bg-gray-700  transform"
+              className="bg-gray-800 p-6 rounded-lg shadow-lg text-gray-300"
             >
               <div className="flex justify-center mb-4">
                 <img src={gymLogo} alt="Jeux d'échecs" className="w-16 h-16 object-contain" />
