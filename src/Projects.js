@@ -22,6 +22,16 @@ function Projects() {
 
   const projects = [
     {
+      id: 10,
+      title: "Neural Booster",
+      description: "Application mobile d'entrainement cérébral dévelopée avec react native et expo. L'application permet de réaliser des exercices de mémorisation, concentration, adaptabilité et + encore.",
+      image: "/img/neural-booster.png",
+      link: "https://neural-booster.vercel.app/",
+      date: "Février, 2025",
+      category: "Développement",
+      technologies: [ ],
+    },
+    {
       id: 1,
       title: "ÉchangeLivre",
       description: "ÉchangeLivre est un exemple de plateforme concernant un projet encore en développement dans lequel il serai possible de revendre ses manuels scolaire déjà utilisés. React + vite utilisé ainsi que quelques librairies d'animations.",
@@ -131,7 +141,7 @@ function Projects() {
       category: "PenTest",
       technologies: [
       ],
-    },
+    }
   ];
 
   const openModal = (project) => {
@@ -145,22 +155,22 @@ function Projects() {
   };
 
   return (
-    <section id="projects" className="bg-gray-900 py-20">
+    <section id="projects" className="bg-gray-900 py-16 md:py-20">
       <div className="container mx-auto px-4">
-        <h3 className="text-3xl font-bold text-teal-400 text-center mb-8 tracking-wider glitch-effect">
+        <h3 className="text-2xl md:text-3xl font-bold text-teal-400 text-center mb-6 md:mb-8 tracking-wider glitch-effect">
           Mes Projets
         </h3>
 
         {/* Catégorie Développement */}
         <h4 className="text-lg md:text-2xl font-semibold text-teal-400 mb-4 md:mb-6">Développement</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {projects.filter(project => project.category === "Développement").map((project) => (
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 100 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="group relative bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+              className="group relative bg-gray-800 p-4 md:p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
             >
               {/* Gradient lumineux au survol */}
               <div
@@ -172,33 +182,28 @@ function Projects() {
               <img
                 src={project.image}
                 alt={project.title}
-                className="rounded mb-4 w-full h-40 object-cover"
+                className="rounded mb-3 md:mb-4 w-full h-32 md:h-40 object-cover"
               />
 
               {/* Titre */}
-              <h4 className="text-xl font-semibold text-teal-300 mb-2 text-center">
+              <h4 className="text-lg md:text-xl font-semibold text-teal-300 mb-2 text-center">
                 {project.title}
               </h4>
 
               {/* Description */}
-              <p className="text-gray-300 text-center mt-2">
-                {project.description.substring(0, 50)}...
+              <p className="text-sm md:text-base text-gray-300 text-center mt-2">
+                {project.description.substring(0, 45)}...
               </p>
 
-
-
               {/* Bouton */}
-              <div className="flex justify-center mt-4 w-full">
+              <div className="flex justify-center mt-3 md:mt-4 w-full">
                 <button
                   onClick={() => openModal(project)}
-                  className="px-6 py-2 relative text-white font-semibold rounded bg-teal-500 hover:bg-teal-600 overflow-hidden"
+                  className="btn-futuristic btn-secondary px-4 py-1.5 text-xs md:text-sm"
                 >
-                  <span className="absolute inset-0 bg-gradient-to-r from-teal-400 to-teal-600 opacity-30"></span>
-                  <span className="relative z-10">En savoir plus</span>
+                  <span>En savoir plus</span>
                 </button>
               </div>
-
-              
             </motion.div>
           ))}
         </div>
@@ -242,10 +247,9 @@ function Projects() {
               <div className="flex justify-center mt-4 w-full">
                 <button
                   onClick={() => openModal(project)}
-                  className="px-6 py-2 relative text-white font-semibold rounded bg-teal-500 hover:bg-teal-600 overflow-hidden"
+                  className="btn-futuristic btn-secondary px-3 py-1 text-xs"
                 >
-                  <span className="absolute inset-0 bg-gradient-to-r from-teal-400 to-teal-600 opacity-30"></span>
-                  <span className="relative z-10">En savoir plus</span>
+                  <span>En savoir plus</span>
                 </button>
               </div>
             </motion.div>

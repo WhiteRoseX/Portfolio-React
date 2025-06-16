@@ -53,7 +53,10 @@ function ProjectModal({ isOpen, onClose, title, description, image_path, link, d
         <div className="bg-gray-800 text-white p-6 rounded-xl shadow-2xl w-3/4 md:w-1/2 max-w-md relative">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-gray-300 hover:text-white zindex-absolu"
+            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-gray-700/50 hover:bg-red-500/50 text-gray-300 hover:text-white transition-all duration-300 backdrop-blur-sm border border-gray-600 hover:border-red-400 zindex-absolu"
+            style={{
+              textShadow: '0 0 10px rgba(255, 255, 255, 0.5)'
+            }}
           >
             ✕
           </button>
@@ -106,12 +109,14 @@ function ProjectModal({ isOpen, onClose, title, description, image_path, link, d
           </div>
 
           {/* Bouton pour fermer */}
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-teal-500 text-white font-semibold rounded-full hover:bg-teal-600 transition-all duration-300"
-          >
-            Fermer
-          </button>
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={onClose}
+              className="btn-futuristic btn-secondary px-8 py-3"
+            >
+              <span>Fermer</span>
+            </button>
+          </div>
         </div>
       </motion.div>
     </>

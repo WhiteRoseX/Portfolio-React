@@ -36,12 +36,18 @@
 }
 
 .glitch-effect {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: bold;
   position: relative;
   color: #00ffcc;
   animation: glitch 1.5s infinite linear;
   text-shadow: 1px 0 red, -1px 0 blue; /* Ajout d'une ombre pour renforcer l'effet */
+}
+
+@media (min-width: 768px) {
+  .glitch-effect {
+    font-size: 3rem;
+  }
 }
 
 
@@ -146,6 +152,221 @@
   width: 100%;
   z-index: 100;  /* Assurez-vous que la navbar reste au-dessus des logos flottants */
   backdrop-filter: blur(2px);
+}
+
+/* Animations futuristes pour la section Formation */
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(calc(100vh));
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 1), 0 0 30px rgba(0, 229, 255, 0.8);
+  }
+}
+
+@keyframes textGlow {
+  0% {
+    text-shadow: 0 0 20px rgba(0, 229, 255, 0.6), 0 0 40px rgba(0, 229, 255, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 30px rgba(0, 229, 255, 0.8), 0 0 60px rgba(0, 229, 255, 0.6), 0 0 80px rgba(0, 229, 255, 0.4);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slideGlow {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes buttonPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(45, 212, 191, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
+  }
+}
+
+@keyframes buttonGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Classes de boutons futuristes */
+.btn-futuristic {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: linear-gradient(45deg, #0d9488, #14b8a6) padding-box,
+              linear-gradient(45deg, #2dd4bf, #14b8a6, #0d9488) border-box;
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  text-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
+}
+
+.btn-futuristic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+  z-index: 1;
+}
+
+.btn-futuristic:hover::before {
+  left: 100%;
+}
+
+.btn-futuristic:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(45, 212, 191, 0.4), 
+              0 0 20px rgba(45, 212, 191, 0.3);
+  animation: buttonPulse 1.5s infinite;
+}
+
+.btn-futuristic:active {
+  transform: translateY(0);
+}
+
+.btn-futuristic span {
+  position: relative;
+  z-index: 2;
+}
+
+/* Variante pour bouton primaire */
+.btn-primary {
+  background: linear-gradient(135deg, #0d9488, #14b8a6, #2dd4bf);
+  background-size: 200% 200%;
+  animation: buttonGlow 3s ease infinite;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #14b8a6, #2dd4bf, #0d9488);
+  background-size: 200% 200%;
+}
+
+/* Variante pour bouton secondaire */
+.btn-secondary {
+  background: linear-gradient(135deg, #0d9488, #14b8a6, #2dd4bf);
+  border: 2px solid #2dd4bf;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6, #0d9488);
+  border-color: #14b8a6;
+  color: white;
+}
+
+/* Bouton avec particules */
+.btn-particles {
+  position: relative;
+}
+
+.btn-particles::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: #2dd4bf;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: particleFloat 2s infinite;
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -70%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -90%) scale(0);
+  }
+}
+
+/* Amélioration responsive pour mobile */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Améliorer l'espacement sur mobile */
+  .navbar {
+    padding: 0.75rem 0;
+  }
+  
+  /* Réduire les animations sur mobile pour les performances */
+  .animated-circle {
+    animation: none;
+  }
+  
+  /* Ajustement des margins pour mobile */
+  section {
+    scroll-margin-top: 80px;
+  }
 }
 
 /* Animation pour le mouvement du gradient */
