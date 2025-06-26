@@ -6,6 +6,10 @@ import Contact from "./Contact.js";
 import About from "./About.js"; // Page À propos
 import Formation from "./Formation.js"; // Page Formation
 import FloatingLogos from "./FloatingLogos.js";
+import ParticleBackground from "./components/ParticleBackground.js";
+import MatrixRain from "./components/MatrixRain.js";
+import ParallaxElements from "./components/ParallaxElements.js";
+import SectionTransitions from "./components/SectionTransitions.js";
 import Typewriter from "typewriter-effect";
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, useGLTF } from '@react-three/drei';
@@ -69,7 +73,12 @@ function App() {
   return (
     <Router>
       <Element name="home"></Element>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-200">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-200 relative">
+        {/* Effets de background impressionnants */}
+        <ParticleBackground />
+        <MatrixRain />
+        <ParallaxElements />
+        
         <ScrollToSection /> {/* Composant pour gérer le scroll automatique */}
 
         {/* Barre de navigation */}
@@ -194,7 +203,8 @@ function App() {
               <>
                 {/* Section Home */}
                 <main>
-                <section className="container mx-auto px-4 py-20 md:py-40 text-center" aria-label="Section d'accueil">
+                <SectionTransitions index={0}>
+                <section className="container mx-auto px-4 py-20 md:py-40 text-center relative z-10" aria-label="Section d'accueil">
                   <h2 className="text-2xl md:text-4xl font-extrabold text-teal-400 mb-4 glitch-effect z-10">
                     <Typewriter
                       options={{
@@ -278,25 +288,34 @@ function App() {
                   </div>
 
                 </section>
+                </SectionTransitions>
 
                 {/* Section Projets */}
+                <SectionTransitions index={1}>
                 <Element name="projects">
                   <Projects />
                 </Element>
+                </SectionTransitions>
 
                 {/* Section Formation */}
+                <SectionTransitions index={2}>
                 <Element name="formation">
                   <Formation />
                 </Element>
+                </SectionTransitions>
 
+                <SectionTransitions index={3}>
                 <Element name="about">
                   <About />
                 </Element>
+                </SectionTransitions>
 
                 {/* Section Contact */}
+                <SectionTransitions index={4}>
                 <Element name="contact">
                   <Contact />
                 </Element>
+                </SectionTransitions>
 
                 </main>
               </>

@@ -32,6 +32,118 @@ html {
   scrollbar-color: #0d9488 #1f2937;
 }
 
+/* Effets visuels avancés */
+@keyframes hologram {
+  0% {
+    text-shadow: 0 0 5px #2dd4bf, 0 0 10px #2dd4bf, 0 0 15px #2dd4bf;
+  }
+  50% {
+    text-shadow: 0 0 10px #14b8a6, 0 0 20px #14b8a6, 0 0 30px #14b8a6;
+  }
+  100% {
+    text-shadow: 0 0 5px #2dd4bf, 0 0 10px #2dd4bf, 0 0 15px #2dd4bf;
+  }
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px #2dd4bf, 0 0 10px #2dd4bf, 0 0 15px #2dd4bf;
+  }
+  50% {
+    box-shadow: 0 0 10px #14b8a6, 0 0 20px #14b8a6, 0 0 30px #14b8a6, 0 0 40px #14b8a6;
+  }
+}
+
+@keyframes digitalFlicker {
+  0%, 100% { opacity: 1; }
+  2% { opacity: 0.8; }
+  4% { opacity: 1; }
+  6% { opacity: 0.9; }
+  8% { opacity: 1; }
+  10% { opacity: 0.95; }
+  12% { opacity: 1; }
+}
+
+@keyframes cyberpunkGlow {
+  0% {
+    filter: brightness(1) contrast(1) hue-rotate(0deg);
+  }
+  25% {
+    filter: brightness(1.1) contrast(1.1) hue-rotate(90deg);
+  }
+  50% {
+    filter: brightness(1.2) contrast(1.2) hue-rotate(180deg);
+  }
+  75% {
+    filter: brightness(1.1) contrast(1.1) hue-rotate(270deg);
+  }
+  100% {
+    filter: brightness(1) contrast(1) hue-rotate(360deg);
+  }
+}
+
+/* Classes utilitaires pour les effets */
+.hologram-text {
+  animation: hologram 3s ease-in-out infinite;
+}
+
+.neon-border {
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+.digital-flicker {
+  animation: digitalFlicker 5s infinite;
+}
+
+.cyberpunk-effect {
+  animation: cyberpunkGlow 8s linear infinite;
+}
+
+/* Effet de scan line global */
+.scan-lines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    transparent 50%,
+    rgba(45, 212, 191, 0.03) 51%,
+    transparent 52%
+  );
+  background-size: 100% 4px;
+  animation: scanlines 0.1s linear infinite;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(4px); }
+}
+
+/* Effet de réflexion */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* Gradients animés */
+.animated-gradient {
+  background: linear-gradient(-45deg, #0d9488, #14b8a6, #2dd4bf, #22d3ee);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 *{
   font-family: "Red Hat Display";
 }
