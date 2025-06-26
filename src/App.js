@@ -5,6 +5,7 @@ import Projects from "./Projects.js";
 import Contact from "./Contact.js";
 import About from "./About.js"; // Page À propos
 import Formation from "./Formation.js"; // Page Formation
+import Experience from "./Experience.js"; // Page Expériences
 import FloatingLogos from "./FloatingLogos.js";
 import ParticleBackground from "./components/ParticleBackground.js";
 import MatrixRain from "./components/MatrixRain.js";
@@ -127,6 +128,11 @@ function App() {
                   </Link>
                 </li>
                 <li>
+                  <Link to={createScrollLink("experience")} className="hover:text-teal-400 transition-colors">
+                    Expériences
+                  </Link>
+                </li>
+                <li>
                   <Link to={createScrollLink("about")} className="hover:text-teal-400 transition-colors">
                     À propos
                   </Link>
@@ -168,6 +174,15 @@ function App() {
                       onClick={closeMobileMenu}
                     >
                       Formation
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to={createScrollLink("experience")} 
+                      className="block hover:text-teal-400 transition-colors text-lg"
+                      onClick={closeMobileMenu}
+                    >
+                      Expériences
                     </Link>
                   </li>
                   <li>
@@ -304,14 +319,21 @@ function App() {
                 </Element>
                 </SectionTransitions>
 
+                {/* Section Expériences */}
                 <SectionTransitions index={3}>
+                <Element name="experience">
+                  <Experience />
+                </Element>
+                </SectionTransitions>
+
+                <SectionTransitions index={4}>
                 <Element name="about">
                   <About />
                 </Element>
                 </SectionTransitions>
 
                 {/* Section Contact */}
-                <SectionTransitions index={4}>
+                <SectionTransitions index={5}>
                 <Element name="contact">
                   <Contact />
                 </Element>
