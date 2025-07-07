@@ -72,12 +72,10 @@ const SectionTransitions = ({ children, index = 0 }) => {
 
   const glitchVariants = {
     hidden: { 
-      opacity: 0,
-      filter: 'hue-rotate(0deg) saturate(100%)'
+      opacity: 0
     },
     visible: { 
       opacity: 1,
-      filter: 'hue-rotate(360deg) saturate(100%)',
       transition: {
         duration: 2,
         ease: "easeInOut"
