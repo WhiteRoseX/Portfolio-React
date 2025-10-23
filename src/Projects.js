@@ -157,7 +157,7 @@ function Projects() {
   return (
     <section id="projects" className="bg-gray-900 py-16 md:py-20">
       <div className="container mx-auto px-4">
-        <h3 className="text-2xl md:text-3xl font-bold text-teal-400 text-center mb-6 md:mb-8 tracking-wider glitch-effect">
+        <h3 className="text-3xl md:text-3xl font-bold text-teal-400 text-center mb-6 md:mb-8 tracking-wider glitch-effect">
           Mes Projets
         </h3>
 

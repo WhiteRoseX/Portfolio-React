@@ -53,7 +53,7 @@ const handleSubmit = (e) => {
 
 const Contact = () => {
   return (
-    <section id="contact" className="bg-gray-900 py-16 md:py-20">
+    <section id="contact" className="bg-171e2d py-16 md:py-20">
       <div className="container mx-auto px-4 md:px-6 text-gray-300">
         <motion.h3
           initial={{ opacity: 0, y: -50 }}

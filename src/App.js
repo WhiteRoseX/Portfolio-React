@@ -7,9 +7,9 @@ import About from "./About.js"; // Page À propos
 import Formation from "./Formation.js"; // Page Formation
 import Experience from "./Experience.js"; // Page Expériences
 import FloatingLogos from "./FloatingLogos.js";
-import ParticleBackground from "./components/ParticleBackground.js";
-import MatrixRain from "./components/MatrixRain.js";
-import ParallaxElements from "./components/ParallaxElements.js";
+import GooeyNav from './Goeynav.js'
+import FaultyTerminal from './faultyterminal.js';
+
 import SectionTransitions from "./components/SectionTransitions.js";
 import Typewriter from "typewriter-effect";
 import { Canvas, useFrame } from '@react-three/fiber';
@@ -71,14 +71,21 @@ function App() {
     setIsMobileMenuOpen(false);
   };
 
+  const gooeyItems = [
+    { label: "Home", href: createScrollLink("home") },
+    { label: "Mes Projets", href: createScrollLink("projects") },
+    { label: "Formation", href: createScrollLink("formation") },
+    { label: "Expériences", href: createScrollLink("experience") },
+    { label: "À propos", href: createScrollLink("about") },
+    { label: "Contact", href: createScrollLink("contact") }
+  ];
+
   return (
     <Router>
       <Element name="home"></Element>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-200 relative">
         {/* Effets de background impressionnants */}
-        <ParticleBackground />
-        <MatrixRain />
-        <ParallaxElements />
+
         
         <ScrollToSection /> {/* Composant pour gérer le scroll automatique */}
 
@@ -109,41 +116,36 @@ function App() {
               </svg>
             </button>
 
-            {/* Navigation desktop */}
-            <nav className="hidden md:block" role="navigation" aria-label="Navigation principale">
-              <ul className="flex space-x-6">
-                <li>
-                  <Link to={createScrollLink("home")} className="hover:text-teal-400 transition-colors">
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <Link to={createScrollLink("projects")} className="hover:text-teal-400 transition-colors">
-                    Mes Projets
-                  </Link>
-                </li>
-                <li>
-                  <Link to={createScrollLink("formation")} className="hover:text-teal-400 transition-colors">
-                    Formation
-                  </Link>
-                </li>
-                <li>
-                  <Link to={createScrollLink("experience")} className="hover:text-teal-400 transition-colors">
-                    Expériences
-                  </Link>
-                </li>
-                <li>
-                  <Link to={createScrollLink("about")} className="hover:text-teal-400 transition-colors">
-                    À propos
-                  </Link>
-                </li>
-                <li>
-                  <Link to={createScrollLink("contact")} className="hover:text-teal-400 transition-colors">
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </nav>
+            {/* Navigation desktop (responsive: hidden on mobile) */}
+            <div className="relative hidden md:block" >
+              <GooeyNav
+                items={gooeyItems.map(i => ({ ...i, href: '#' }))}
+                particleCount={15}
+                particleDistances={[90, 10]}
+                particleR={100}
+                initialActiveIndex={0}
+                animationTime={600}
+                timeVariance={300}
+                colors={[1, 2, 3, 1, 2, 3, 1, 4]}
+                onSelect={(item) => {
+                  // Scroll via react-scroll by pushing URL param
+                  const url = new URL(window.location.href);
+                  const label = item.label.toLowerCase();
+                  const map = {
+                    'home': 'home',
+                    'mes projets': 'projects',
+                    'formation': 'formation',
+                    'expériences': 'experience',
+                    'à propos': 'about',
+                    'contact': 'contact'
+                  };
+                  const section = map[label] || 'home';
+                  window.history.pushState({}, '', `/?scrollTo=${section}`);
+                  // Trigger ScrollToSection effect
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
+              />
+            </div>
 
             {/* Menu mobile */}
             {isMobileMenuOpen && (
@@ -218,8 +220,8 @@ function App() {
               <>
                 {/* Section Home */}
                 <main>
-                <SectionTransitions index={0}>
-                <section className="container mx-auto px-4 py-20 md:py-40 text-center relative z-10" aria-label="Section d'accueil">
+             
+                <section className="container mx-auto px-4 py-20 md:py-40 text-center relative z-10 overflow-hidden" aria-label="Section d'accueil">
                   <h2 className="text-2xl md:text-4xl font-extrabold text-teal-400 mb-4 glitch-effect z-10">
                     <Typewriter
                       options={{
@@ -237,8 +239,10 @@ function App() {
                   >
                     <span>Mes Projets</span>
                   </Link>
-                  <FloatingLogos numberOfLogos={20} />
-                  
+                  <div className="absolute inset-0 -z-10">
+                    <FloatingLogos numberOfLogos={10} />
+                  </div>
+
                   <div className="mt-8 md:mt-16 flex justify-center relative">
                     {/* Canvas avec le modèle 3D - responsive */}
                     <Canvas 
@@ -303,42 +307,41 @@ function App() {
                   </div>
 
                 </section>
-                </SectionTransitions>
+          
 
                 {/* Section Projets */}
-                <SectionTransitions index={1}>
+                
                 <Element name="projects">
                   <Projects />
                 </Element>
-                </SectionTransitions>
+          
 
                 {/* Section Formation */}
-                <SectionTransitions index={2}>
+                
                 <Element name="formation">
                   <Formation />
                 </Element>
-                </SectionTransitions>
+          
 
                 {/* Section Expériences */}
-                <SectionTransitions index={3}>
+                
                 <Element name="experience">
                   <Experience />
                 </Element>
-                </SectionTransitions>
+          
 
-                <SectionTransitions index={4}>
+                
                 <Element name="about">
                   <About />
                 </Element>
-                </SectionTransitions>
+              
 
                 {/* Section Contact */}
-                <SectionTransitions index={5}>
+               
                 <Element name="contact">
                   <Contact />
                 </Element>
-                </SectionTransitions>
-
+          
                 </main>
               </>
             }
