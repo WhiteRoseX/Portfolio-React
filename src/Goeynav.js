@@ -1,7 +1,23 @@
-import { useRef, useEffect, useState } from 'react';
+
+import React, {
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
+
+const PALETTE = {
+    1: "#27CAB6",
+    2: "#19AFA6",
+    3: "#68E1D2",
+    4: "#B5FFF2",
+};
+
+const random = (min, max) =>
+    min + Math.random() * (max - min);
 
 const GooeyNav = ({
-    items,
+    items = [],
     animationTime = 600,
     particleCount = 15,
     particleDistances = [90, 10],
@@ -10,15 +26,19 @@ const GooeyNav = ({
     colors = [1, 2, 3, 1, 2, 3, 1, 4],
     initialActiveIndex = 0,
     activeSectionIndex,
-    onSelect
+    onSelect,
 }) => {
     const containerRef = useRef(null);
     const navRef = useRef(null);
-    const filterRef = useRef(null);
-    const textRef = useRef(null);
     const pillRef = useRef(null);
-    const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
+    const particlesRef = useRef(null);
 
+    const [activeIndex, setActiveIndex] = useState(
+        initialActiveIndex
+    );
+
+    // Synchronisation avec la section visible.
+    // Ne déclenche pas les particules.
     useEffect(() => {
         if (
             Number.isInteger(activeSectionIndex) &&
@@ -29,342 +49,566 @@ const GooeyNav = ({
         }
     }, [activeSectionIndex, items.length]);
 
+    // Positionnement du fond vert et des particules.
+    const placeEffects = (element) => {
+        const root = containerRef.current;
 
-    const noise = (n = 1) => n / 2 - Math.random() * n;
-    const getXY = (distance, pointIndex, totalPoints) => {
-        const angle = ((360 + noise(8)) / totalPoints) * pointIndex * (Math.PI / 180);
-        return [distance * Math.cos(angle), distance * Math.sin(angle)];
-    };
-    const createParticle = (i, t, d, r) => {
-        let rotate = noise(r / 10);
-        return {
-            start: getXY(d[0], particleCount - i, particleCount),
-            end: getXY(d[1] + noise(7), particleCount - i, particleCount),
-            time: t,
-            scale: 1 + noise(0.2),
-            color: colors[Math.floor(Math.random() * colors.length)],
-            rotate: rotate > 0 ? (rotate + r / 20) * 10 : (rotate - r / 20) * 10
+        if (!root || !element) return;
+
+        const rootRect = root.getBoundingClientRect();
+        const itemRect = element.getBoundingClientRect();
+
+        const position = {
+            left: `${itemRect.left - rootRect.left}px`,
+            top: `${itemRect.top - rootRect.top}px`,
+            width: `${itemRect.width}px`,
+            height: `${itemRect.height}px`,
         };
-    };
-    const makeParticles = element => {
-        const d = particleDistances;
-        const r = particleR;
-        const bubbleTime = animationTime * 2 + timeVariance;
-        element.style.setProperty('--time', `${bubbleTime}ms`);
-        for (let i = 0; i < particleCount; i++) {
-            const t = animationTime * 2 + noise(timeVariance * 2);
-            const p = createParticle(i, t, d, r);
-            element.classList.remove('active');
-            setTimeout(() => {
-                const particle = document.createElement('span');
-                const point = document.createElement('span');
-                particle.classList.add('particle');
-                particle.style.setProperty('--start-x', `${p.start[0]}px`);
-                particle.style.setProperty('--start-y', `${p.start[1]}px`);
-                particle.style.setProperty('--end-x', `${p.end[0]}px`);
-                particle.style.setProperty('--end-y', `${p.end[1]}px`);
-                particle.style.setProperty('--time', `${p.time}ms`);
-                particle.style.setProperty('--scale', `${p.scale}`);
-                particle.style.setProperty('--color', `var(--color-${p.color}, white)`);
-                particle.style.setProperty('--rotate', `${p.rotate}deg`);
-                point.classList.add('point');
-                particle.appendChild(point);
-                element.appendChild(particle);
-                requestAnimationFrame(() => {
-                    element.classList.add('active');
-                });
-                setTimeout(() => {
-                    try {
-                        element.removeChild(particle);
-                    } catch {
-                        // do nothing
-                    }
-                }, t);
-            }, 30);
-        }
-    };
-    const updateEffectPosition = element => {
-        if (!containerRef.current || !filterRef.current || !textRef.current) return;
-        const containerRect = containerRef.current.getBoundingClientRect();
-        const pos = element.getBoundingClientRect();
-        const styles = {
-            left: `${pos.x - containerRect.x}px`,
-            top: `${pos.y - containerRect.y}px`,
-            width: `${pos.width}px`,
-            height: `${pos.height}px`
-        };
-        Object.assign(filterRef.current.style, styles);
-        Object.assign(textRef.current.style, styles);
+
         if (pillRef.current) {
-            Object.assign(pillRef.current.style, styles);
+            Object.assign(pillRef.current.style, position);
         }
-        textRef.current.innerText = element.innerText;
-    };
-    const handleClick = (e, index) => {
-        const liEl = e.currentTarget.closest("li");;
-        if (activeIndex === index) return;
-        setActiveIndex(index);
-        updateEffectPosition(liEl);
-        if (filterRef.current) {
-            const particles = filterRef.current.querySelectorAll('.particle');
-            particles.forEach(p => filterRef.current.removeChild(p));
-        }
-        if (textRef.current) {
-            textRef.current.classList.remove('active');
-            void textRef.current.offsetWidth;
-            textRef.current.classList.add('active');
-        }
-        if (filterRef.current) {
-            makeParticles(filterRef.current);
+
+        if (particlesRef.current) {
+            Object.assign(
+                particlesRef.current.style,
+                position
+            );
         }
     };
-    const handleKeyDown = (e, index) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            const liEl = e.currentTarget.parentElement;
-            if (liEl) {
-                handleClick({ currentTarget: liEl }, index);
+
+    // Mise à jour lors du scroll ou du redimensionnement.
+    useLayoutEffect(() => {
+        const update = () => {
+            const item =
+                navRef.current?.children[activeIndex];
+
+            if (item) {
+                placeEffects(item);
             }
+        };
+
+        update();
+
+        const observer =
+            typeof ResizeObserver !== "undefined"
+                ? new ResizeObserver(update)
+                : null;
+
+        if (observer && containerRef.current) {
+            observer.observe(containerRef.current);
         }
-    };
+
+        window.addEventListener("resize", update);
+
+        return () => {
+            observer?.disconnect();
+            window.removeEventListener("resize", update);
+        };
+    }, [activeIndex, items.length]);
+
+    // Évite une animation depuis le coin supérieur
+    // gauche au premier chargement.
     useEffect(() => {
-        if (!navRef.current || !containerRef.current) return;
-        const activeLi = navRef.current.querySelectorAll('li')[activeIndex];
-        if (activeLi) {
-            updateEffectPosition(activeLi);
-            textRef.current?.classList.add('active');
-        }
-        const resizeObserver = new ResizeObserver(() => {
-            const currentActiveLi = navRef.current?.querySelectorAll('li')[activeIndex];
-            if (currentActiveLi) {
-                updateEffectPosition(currentActiveLi);
-            }
+        const frame = requestAnimationFrame(() => {
+            pillRef.current?.classList.add("gn-ready");
         });
-        resizeObserver.observe(containerRef.current);
-        return () => resizeObserver.disconnect();
-    }, [activeIndex]);
+
+        return () => cancelAnimationFrame(frame);
+    }, []);
+
+    // Génération des particules Gooey.
+    const makeParticles = () => {
+        const layer = particlesRef.current;
+
+        if (!layer) return;
+
+        if (
+            window.matchMedia?.(
+                "(prefers-reduced-motion: reduce)"
+            ).matches
+        ) {
+            layer.replaceChildren();
+            return;
+        }
+
+        // Nettoyage des particules précédentes.
+        layer.replaceChildren();
+
+        const fragment =
+            document.createDocumentFragment();
+
+        const count = Math.max(
+            0,
+            Math.min(60, Math.floor(particleCount))
+        );
+
+        if (count === 0) return;
+
+        for (let i = 0; i < count; i++) {
+            // Répartition circulaire avec variation
+            // naturelle de direction.
+            const angle =
+                (i / count) * Math.PI * 2 +
+                random(-0.14, 0.14);
+
+            const startRadius =
+                particleDistances[0] *
+                random(0.75, 1.12);
+
+            const endRadius =
+                particleDistances[1] *
+                random(0.6, 1.6);
+
+            // Légère courbure des trajectoires.
+            const bend = random(
+                -particleR * 0.12,
+                particleR * 0.12
+            );
+
+            const startX =
+                Math.cos(angle) * startRadius;
+
+            const startY =
+                Math.sin(angle) * startRadius;
+
+            const endX =
+                Math.cos(angle) * endRadius;
+
+            const endY =
+                Math.sin(angle) * endRadius;
+
+            const midX =
+                startX * 0.35 +
+                endX * 0.65 -
+                Math.sin(angle) * bend;
+
+            const midY =
+                startY * 0.35 +
+                endY * 0.65 +
+                Math.cos(angle) * bend;
+
+            // Durée et décalage propres à chaque goutte.
+            const duration = Math.max(
+                450,
+                animationTime * 1.55 +
+                random(
+                    -timeVariance / 2,
+                    timeVariance / 2
+                )
+            );
+
+            const delay = random(0, 70);
+            const size = random(9, 17);
+
+            const colorId =
+                colors[
+                Math.floor(Math.random() * colors.length)
+                ];
+
+            const color =
+                PALETTE[colorId] || PALETTE[1];
+
+            const particle =
+                document.createElement("span");
+
+            const dot =
+                document.createElement("span");
+
+            particle.className = "gn-particle";
+            dot.className = "gn-dot";
+
+            // Propriétés transmises aux animations CSS.
+            const values = {
+                "--gn-start-x": `${startX}px`,
+                "--gn-start-y": `${startY}px`,
+                "--gn-mid-x": `${midX}px`,
+                "--gn-mid-y": `${midY}px`,
+                "--gn-end-x": `${endX}px`,
+                "--gn-end-y": `${endY}px`,
+                "--gn-time": `${duration}ms`,
+                "--gn-delay": `${delay}ms`,
+                "--gn-size": `${size}px`,
+                "--gn-color": color,
+            };
+
+            Object.entries(values).forEach(
+                ([key, value]) => {
+                    particle.style.setProperty(key, value);
+                }
+            );
+
+            particle.appendChild(dot);
+
+            // Suppression automatique de chaque particule.
+            particle.addEventListener(
+                "animationend",
+                (event) => {
+                    if (event.target === particle) {
+                        particle.remove();
+                    }
+                },
+                { once: true }
+            );
+
+            fragment.appendChild(particle);
+        }
+
+        // Insertion de toutes les particules ensemble.
+        layer.appendChild(fragment);
+    };
+
+    // Gestion des clics.
+    const handleSelect = (item, index, element) => {
+        setActiveIndex(index);
+
+        // Le fond commence sa transition.
+        placeEffects(element);
+
+        // Les particules apparaissent autour
+        // de l'onglet de destination.
+        makeParticles();
+
+        // La logique de scroll reste gérée par App.js.
+        if (typeof onSelect === "function") {
+            onSelect(item, index);
+        }
+    };
 
     return (
         <>
-            {/* This effect is quite difficult to recreate faithfully using Tailwind, so a style tag is a necessary workaround */}
             <style>
                 {`
-          :root {
-            --linear-ease: linear(0, 0.068, 0.19 2.7%, 0.804 8.1%, 1.037, 1.199 13.2%, 1.245, 1.27 15.8%, 1.274, 1.272 17.4%, 1.249 19.1%, 0.996 28%, 0.949, 0.928 33.3%, 0.926, 0.933 36.8%, 1.001 45.6%, 1.013, 1.019 50.8%, 1.018 54.4%, 1 63.1%, 0.995 68%, 1.001 85%, 1);
-            /* Gooey particle colors (tailwind teal/cyan/purple-ish) */
-            --color-1: #22d3ee;
-            --color-2: #13B1A1;
-            --color-3: #77652F;
-            --color-4: #a78bfa;
+          /* CONTENEUR */
+
+          .gn-root {
+            position: relative;
+            isolation: isolate;
+            overflow: visible;
           }
-          .effect {
+
+          /* FOND DE SÉLECTION OPAQUE */
+
+          .gn-pill {
             position: absolute;
-            opacity: 1;
+            z-index: 0;
+
+            border-radius: 9999px;
+
+            background: #27CAB6;
+
+            box-shadow:
+              0 4px 14px rgba(39, 202, 182, 0.25);
+
             pointer-events: none;
-            display: grid;
-            place-items: center;
-            z-index: 1;
           }
-          .effect.text {
-            color: white;
-            transition: color 0.3s ease;
+
+          .gn-pill.gn-ready {
+            transition:
+              left 430ms cubic-bezier(0.22, 1, 0.36, 1),
+              top 430ms cubic-bezier(0.22, 1, 0.36, 1),
+              width 430ms cubic-bezier(0.22, 1, 0.36, 1),
+              height 430ms cubic-bezier(0.22, 1, 0.36, 1);
           }
-          .effect.text.active {
-            color: white; /* active text in white */
+
+          /* NAVIGATION */
+
+          .gn-nav {
+            position: relative;
+            z-index: 2;
           }
-          .effect.filter {
-            filter: blur(7px) contrast(100) blur(0);
-            mix-blend-mode: lighten;
+
+          .gn-list {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+
+            padding: 0 1rem;
+            margin: 0;
+
+            list-style: none;
           }
-          .effect.filter::before {
-            content: "";
-            position: absolute;
-            inset: -75px;
-            z-index: -2;
-            background: transparent; /* remove black backdrop */
-          }
-          .effect.filter::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: transparent; /* disable overlay color to avoid lightening */
-            transform: scale(0);
-            opacity: 0;
-            z-index: -1;
+
+          .gn-item {
+            position: relative;
+            flex-shrink: 0;
             border-radius: 9999px;
           }
-          .effect.active::after { animation: none; }
-          @keyframes pill {
-            to {
-              transform: scale(1);
-              opacity: 1;
-            }
-          }
-          .particle,
-          .point {
+
+          .gn-link {
             display: block;
-            opacity: 0;
-            width: 20px;
-            height: 20px;
+            position: relative;
+
+            padding: 0.6em 1em;
+
+            color: #ffffff;
+            text-decoration: none;
+            white-space: nowrap;
+
             border-radius: 9999px;
-            transform-origin: center;
+            outline-offset: 4px;
+
+            transition: color 180ms ease;
+            cursor: pointer;
           }
-          .particle {
-            --time: 5s;
+
+          .gn-link:hover {
+            color: #b5fff2;
+          }
+
+          .gn-active .gn-link,
+          .gn-active .gn-link:hover {
+            color: #ffffff;
+          }
+
+          .gn-link:focus-visible {
+            outline: 2px solid #b5fff2;
+          }
+
+          /* COUCHE DES PARTICULES */
+
+          .gn-particles-layer {
             position: absolute;
-            top: calc(50% - 8px);
-            left: calc(50% - 8px);
-            animation: particle calc(var(--time)) ease 1 -350ms;
+            z-index: 5;
+
+            overflow: visible;
+            pointer-events: none;
+
+            /* On garde les particules visibles */
+            filter: none;
           }
-          .point {
-            background: var(--color);
-            opacity: 1;
-            animation: point calc(var(--time)) ease 1 -350ms;
-          }
-          @keyframes particle {
-            0% {
-              transform: rotate(0deg) translate(calc(var(--start-x)), calc(var(--start-y)));
-              opacity: 1;
-              animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
-            }
-            70% {
-              transform: rotate(calc(var(--rotate) * 0.5)) translate(calc(var(--end-x) * 1.2), calc(var(--end-y) * 1.2));
-              opacity: 1;
-              animation-timing-function: ease;
-            }
-            85% {
-              transform: rotate(calc(var(--rotate) * 0.66)) translate(calc(var(--end-x)), calc(var(--end-y)));
-              opacity: 1;
-            }
-            100% {
-              transform: rotate(calc(var(--rotate) * 1.2)) translate(calc(var(--end-x) * 0.5), calc(var(--end-y) * 0.5));
-              opacity: 1;
-            }
-          }
-          @keyframes point {
-            0% {
-              transform: scale(0);
-              opacity: 0;
-              animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
-            }
-            25% {
-              transform: scale(calc(var(--scale) * 0.25));
-            }
-            38% {
-              opacity: 1;
-            }
-            65% {
-              transform: scale(var(--scale));
-              opacity: 1;
-              animation-timing-function: ease;
-            }
-            85% {
-              transform: scale(var(--scale));
-              opacity: 1;
-            }
-            100% {
-              transform: scale(0);
-              opacity: 0;
-            }
-          }
-          li.active {
-            color: white; /* active text in white */
-            text-shadow: none;
-          }
-          li.active::after {
-            opacity: 1;
-            transform: scale(1);
-          }
-          li::after {
-            content: "";
+
+          /* PARTICULE INDIVIDUELLE */
+
+          .gn-particle {
             position: absolute;
-            inset: 0;
-            border-radius: 9999px; /* pill shape */
-            background: #27CAB6; /* exact pill color */
+
+            top: 50%;
+            left: 50%;
+
+            width: var(--gn-size);
+            height: var(--gn-size);
+
+            margin-left:
+              calc(var(--gn-size) * -0.5);
+
+            margin-top:
+              calc(var(--gn-size) * -0.5);
+
             opacity: 0;
-            transform: scale(0);
-            transition: all 0.3s ease;
-            z-index: -1;
+            pointer-events: none;
+
+            animation:
+              gn-flight
+              var(--gn-time)
+              cubic-bezier(0.2, 0.7, 0.35, 1)
+              var(--gn-delay)
+              both;
+
+            will-change: transform, opacity;
           }
-            
-.gooey-nav .gooey-active-pill {
-  position: absolute;
-  z-index: 0;
 
-  border-radius: 9999px;
+          /* GOUTTE LUMINEUSE */
 
-  /* Vert opaque original */
-  background: #27CAB6;
+          .gn-dot {
+            display: block;
 
-  border: none;
+            width: 100%;
+            height: 100%;
 
-  box-shadow:
-    0 4px 14px rgba(39, 202, 182, 0.25),
-    0 0 18px rgba(39, 202, 182, 0.12);
+            border-radius: 50%;
 
-  pointer-events: none;
+            background: var(--gn-color);
 
-  transition:
-    left 420ms cubic-bezier(0.22, 1, 0.36, 1),
-    top 420ms cubic-bezier(0.22, 1, 0.36, 1),
-    width 420ms cubic-bezier(0.22, 1, 0.36, 1),
-    height 420ms cubic-bezier(0.22, 1, 0.36, 1);
-}
+            box-shadow:
+              0 0 7px 1px
+                rgba(39, 202, 182, 0.65),
+              0 0 15px
+                rgba(104, 225, 210, 0.25);
 
-/* On masque l'ancien fond pour éviter deux sélections */
-.gooey-nav li::after,
-.gooey-nav li.active::after {
-  display: none;
-}
+            animation:
+              gn-drop
+              var(--gn-time)
+              ease-in-out
+              var(--gn-delay)
+              both;
+          }
 
-/* Texte blanc sur le vert */
-.gooey-nav li.active {
-  color: #ffffff;
-}
+          /* Reflet discret sur les gouttes */
 
+          .gn-dot::after {
+            content: "";
+
+            display: block;
+
+            width: 38%;
+            height: 38%;
+
+            border-radius: 50%;
+
+            background:
+              rgba(255, 255, 255, 0.65);
+
+            transform:
+              translate(65%, 45%);
+
+            filter: blur(1px);
+          }
+
+          /* TRAJECTOIRE DES PARTICULES */
+
+          @keyframes gn-flight {
+            0% {
+              transform:
+                translate(
+                  var(--gn-start-x),
+                  var(--gn-start-y)
+                )
+                scale(0.4);
+
+              opacity: 0;
+            }
+
+            12% {
+              opacity: 1;
+            }
+
+            50% {
+              transform:
+                translate(
+                  var(--gn-mid-x),
+                  var(--gn-mid-y)
+                )
+                scale(1);
+
+              opacity: 1;
+            }
+
+            78% {
+              opacity: 0.95;
+            }
+
+            100% {
+              transform:
+                translate(
+                  var(--gn-end-x),
+                  var(--gn-end-y)
+                )
+                scale(0.3);
+
+              opacity: 0;
+            }
+          }
+
+          /* RESPIRATION DES GOUTTES */
+
+          @keyframes gn-drop {
+            0% {
+              transform: scale(0.35);
+            }
+
+            30% {
+              transform: scale(1.05);
+            }
+
+            65% {
+              transform: scale(0.85);
+            }
+
+            100% {
+              transform: scale(0);
+            }
+          }
+
+          /* ACCESSIBILITÉ */
+
+          @media (
+            prefers-reduced-motion: reduce
+          ) {
+            .gn-pill.gn-ready {
+              transition: none;
+            }
+
+            .gn-link {
+              transition: none;
+            }
+          }
         `}
             </style>
-            <div className="relative gooey-nav" ref={containerRef}>
+
+            <div
+                className="gn-root"
+                ref={containerRef}
+            >
+                {/* Fond turquoise mobile */}
                 <span
+                    className="gn-pill"
                     ref={pillRef}
-                    className="gooey-active-pill"
                     aria-hidden="true"
                 />
-                <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
+
+                {/* Navigation principale */}
+                <nav
+                    className="gn-nav"
+                    aria-label="Navigation principale"
+                >
                     <ul
+                        className="gn-list"
                         ref={navRef}
-                        className="flex gap-8 list-none p-0 px-4 m-0 relative z-[3]"
-                        style={{
-                            color: 'white',
-                            textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)'
-                        }}
                     >
-                        {items.map((item, index) => (
-                            <li
-                                key={index}
-                                className={`rounded-full relative cursor-pointer transition-[background-color_color_box-shadow] duration-300 ease shadow-[0_0_0.5px_1.5px_transparent] text-white ${activeIndex === index ? 'active' : ''
-                                    }`}
-                            >
-                                <a
-                                    onClick={e => {
-                                        e.preventDefault();
-                                        handleClick(e, index);
-                                        if (typeof onSelect === 'function') {
-                                            onSelect(item, index);
-                                        }
-                                    }}
-                                    href={item.href || '#'}
-                                    onKeyDown={e => handleKeyDown(e, index)}
-                                    className="outline-none py-[0.6em] px-[1em] inline-block"
+                        {items.map((item, index) => {
+                            const isActive =
+                                activeIndex === index;
+
+                            return (
+                                <li
+                                    key={`${item.label}-${index}`}
+                                    className={`gn-item ${isActive ? "gn-active" : ""
+                                        }`}
                                 >
-                                    {item.label}
-                                </a>
-                            </li>
-                        ))}
+                                    <a
+                                        className="gn-link"
+                                        href={item.href || "#"}
+                                        aria-current={
+                                            isActive
+                                                ? "page"
+                                                : undefined
+                                        }
+                                        onClick={(event) => {
+                                            event.preventDefault();
+
+                                            handleSelect(
+                                                item,
+                                                index,
+                                                event.currentTarget.parentElement
+                                            );
+                                        }}
+                                        onKeyDown={(event) => {
+                                            if (event.key === " ") {
+                                                event.preventDefault();
+
+                                                handleSelect(
+                                                    item,
+                                                    index,
+                                                    event.currentTarget.parentElement
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        {item.label}
+                                    </a>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </nav>
-                <span className="effect filter" ref={filterRef} />
-                <span className="effect text" ref={textRef} />
+
+                {/* Particules visibles au-dessus de la barre */}
+                <span
+                    className="gn-particles-layer"
+                    ref={particlesRef}
+                    aria-hidden="true"
+                />
             </div>
         </>
     );

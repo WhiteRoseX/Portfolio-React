@@ -274,14 +274,15 @@ function App() {
                                     ...item,
                                     href: "#",
                                 }))}
-                                particleCount={15}
-                                activeSectionIndex={activeSectionIndex}
-                                particleDistances={[90, 10]}
-                                particleR={100}
-                                initialActiveIndex={0}
-                                animationTime={600}
-                                timeVariance={300}
 
+                                particleCount={12}
+                                particleDistances={[64, 12]}
+                                particleR={65}
+                                animationTime={520}
+                                timeVariance={140}
+                                colors={[1, 1, 2, 2, 3, 4]}
+                                activeSectionIndex={activeSectionIndex}
+                                initialActiveIndex={0}
                                 onSelect={(item, index) => {
                                     const map = {
                                         home: "home",
@@ -379,8 +380,8 @@ function App() {
                                                 options={{
                                                     strings: [
                                                         "Lucas Djavid",
-                                                        "Developper Full-Stack",
-                                                        "Débutant en CyberSécurité",
+                                                        "Développeur Full-Stack",
+                                                        "Développeur iOS",
                                                     ],
                                                     autoStart: true,
                                                     loop: true,
