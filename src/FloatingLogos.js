@@ -1,210 +1,286 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useAnimation, useReducedMotion } from "framer-motion";
+import React, { useMemo } from "react";
+import {
+    motion,
+    useAnimationFrame,
+    useMotionValue,
+    useReducedMotion,
+    useTransform,
+} from "framer-motion";
 
-const logos = [
-  "https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png",
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Vitejs-logo.svg/640px-Vitejs-logo.svg.png",
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/640px-React-icon.svg.png",
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Node.js_logo_2015.svg/640px-Node.js_logo_2015.svg.png",
+const PHI = (1 + Math.sqrt(5)) / 2;
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+const icon = (name) =>
+    `https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/${name}/${name}-original.svg`;
+
+const technologies = [
+    { name: "React", src: icon("react") },
+    { name: "JavaScript", src: icon("javascript") },
+    { name: "Node.js", src: icon("nodejs") },
+    { name: "TypeScript", src: icon("typescript") },
+    { name: "Python", src: icon("python") },
+    { name: "Swift", src: icon("swift") },
+    { name: "SwiftUI", src: icon("swift") },
+    { name: "Tailwind", src: icon("tailwindcss") },
+    { name: "Vite", src: icon("vitejs") },
+    { name: "Git", src: icon("git") },
+    { name: "Docker", src: icon("docker") },
+    { name: "HTML5", src: icon("html5") },
+    { name: "CSS3", src: icon("css3") },
+    { name: "Firebase", src: icon("firebase") },
+    { name: "Linux", src: icon("linux") },
+    { name: "PostgreSQL", src: icon("postgresql") },
 ];
 
-const rand = (min, max) => Math.random() * (max - min) + min;
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+// petit helper
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-const labelFromSrc = (src) =>
-  src.includes("React") ? "React" :
-  src.includes("Node") ? "Node.js" :
-  src.includes("Vite") ? "Vite" :
-  src.includes("JavaScript") ? "JavaScript" : "Logo";
+/**
+ * Génère des positions sur toute la largeur,
+ * en évitant partiellement la zone centrale.
+ */
 
-function randomPoint(w, h, size = 0, margin = 40) {
-  // garde une marge + la taille de l'élément pour ne pas coller aux bords
-  const mX = margin + size / 2;
-  const mY = margin + size / 2;
-  return {
-    x: rand(mX, Math.max(mX, w - mX)),
-    y: rand(mY, Math.max(mY, h - mY)),
-  };
+function seededRandom(seed) {
+    return function () {
+        let t = (seed += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+function generatePositions(count, mobile = false) {
+    const random = seededRandom(20261019 + count + (mobile ? 1 : 0));
+    const positions = [];
+
+    // Espacement adapté à la forme du rectangle
+    const aspect = mobile ? 0.65 : 2.3;
+
+    const marginX = mobile ? 9 : 3;
+    const marginY = 8;
+
+    for (let i = 0; i < count; i++) {
+        let best = null;
+        let bestScore = -Infinity;
+
+        // On teste différentes positions aléatoires
+        for (let attempt = 0; attempt < 50; attempt++) {
+            const x = marginX + random() * (100 - marginX * 2);
+            const y = marginY + random() * (100 - marginY * 2);
+
+            // Distance par rapport aux logos existants
+            let minDistance = Infinity;
+
+            for (const point of positions) {
+                const dx = (x - point.x) * aspect;
+                const dy = y - point.y;
+
+                const distance = Math.hypot(dx, dy);
+                minDistance = Math.min(minDistance, distance);
+            }
+
+            // Protection légère du titre et de l'ordinateur
+            // sans créer un grand couloir vide au centre
+            const titleDistance =
+                ((x - 50) / 13) ** 2 +
+                ((y - 18) / 10) ** 2;
+
+            const laptopDistance =
+                ((x - 50) / 15) ** 2 +
+                ((y - 48) / 16) ** 2;
+
+            const penalty =
+                (titleDistance < 1 ? 12 : 0) +
+                (laptopDistance < 1 ? 9 : 0);
+
+            // Petite variation aléatoire pour éviter
+            // une distribution trop mathématique
+            const score = minDistance + random() * 7 - penalty;
+
+            if (score > bestScore) {
+                bestScore = score;
+                best = { x, y };
+            }
+        }
+
+        if (!best) continue;
+
+        positions.push(best);
+    }
+
+    return positions.map((point, i) => ({
+        id: i,
+        logo: technologies[i % technologies.length],
+        x: point.x,
+        y: point.y,
+        size: mobile
+            ? 25 + random() * 9
+            : 30 + random() * 16,
+        seed: random() * 10000,
+    }));
 }
 
 /**
- * Génère N positions initiales "bien réparties" : on divise l'écran
- * en une grille ~sqrt(N) x ~sqrt(N) et on prend un point aléatoire dans chaque cellule.
+ * Mouvement organique "fractal-ish"
+ * = somme de plusieurs oscillations lentes.
  */
-function seededPositions(n, w, h, size = 0) {
-  const cols = Math.ceil(Math.sqrt(n));
-  const rows = Math.ceil(n / cols);
-  const cellW = w / cols;
-  const cellH = h / rows;
-  const out = [];
-  let k = 0;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols && k < n; c++, k++) {
-      const cx = c * cellW;
-      const cy = r * cellH;
-      const margin = 24 + size / 2;
-      const x = rand(cx + margin, Math.max(cx + margin, cx + cellW - margin));
-      const y = rand(cy + margin, Math.max(cy + margin, cy + cellH - margin));
-      out.push({ x, y });
-    }
-  }
-  return out;
-}
+function FloatingLogoItem({ item, reducedMotion }) {
+    const { logo, x: baseXPercent, y: baseYPercent, size, seed, id } = item;
 
-/* -------------------- Enfant: 1 logo flottant -------------------- */
-function FloatingLogoItem({ src, size, baseOpacity, start, getViewport }) {
-  const controls = useAnimation();
-  const prefersReduced = useReducedMotion();
-  const runningRef = useRef(true);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const rotate = useMotionValue(0);
+    const scale = useMotionValue(1);
 
-  useEffect(() => {
-    runningRef.current = true;
-    return () => { runningRef.current = false; };
-  }, []);
+    const opacity = useTransform(scale, [0.94, 1.08], [0.38, 0.72]);
 
-  useEffect(() => {
-    if (prefersReduced) return;
+    // paramètres propres à chaque logo
+    const ampX = 65 + (id % 6) * 13;
+    const ampY = 30 + (id % 5) * 11;
+    const rotAmp = 4 + (id % 4) * 1.2;
 
-    async function loop() {
-      // position de départ
-      await controls.set({
-        x: start.x,
-        y: start.y,
-        scale: 1,
-        opacity: baseOpacity,
-      });
+    useAnimationFrame((time) => {
+        if (reducedMotion) return;
 
-      // boucle infinie sans délai ajouté => pas de "pause"
-      while (runningRef.current) {
-        const { w, h } = getViewport();
-        const next = randomPoint(w, h, size);
-        const scaleTo = rand(0.52, 0.80);
-        const opacityTo = clamp(baseOpacity + rand(-0.2, 0.2), 0.35, 0.6);
+        // temps en secondes
+        const t = time / 1000;
 
-        await controls.start({
-          x: next.x,
-          y: next.y,
-          scale: scaleTo,
-          opacity: opacityTo,
-          transition: {
-            duration: rand(6, 12), // trajets plus longs => flottement doux
-            ease: "easeInOut",
-          },
-        });
-      }
-    }
+        /**
+         * fBm très simple :
+         * plusieurs couches d'oscillations lentes,
+         * avec phases/frequences différentes.
+         */
+        const dx =
+            Math.sin(t * 0.45 + seed * 1.37) * ampX * 0.55 +
+            Math.sin(t * 0.91 + seed * 2.11) * ampX * 0.28 +
+            Math.cos(t * 1.63 + seed * 0.73) * ampX * 0.17;
 
-    loop();
+        const dy =
+            Math.cos(t * 0.38 + seed * 1.91) * ampY * 0.58 +
+            Math.sin(t * 0.84 + seed * 0.67) * ampY * 0.27 +
+            Math.cos(t * 1.47 + seed * 2.73) * ampY * 0.15;
 
-    return () => {
-      controls.stop();
-    };
-  }, [controls, prefersReduced, baseOpacity, size, getViewport, start.x, start.y]);
+        const driftX =
+            Math.sin(t * 0.12 + seed * 3.2) * 12 +
+            Math.cos(t * 0.07 + seed * 1.9) * 8;
 
-  if (prefersReduced) {
-    // version statique dispersée
+        const driftY =
+            Math.cos(t * 0.1 + seed * 2.4) * 10 +
+            Math.sin(t * 0.06 + seed * 1.2) * 6;
+
+        const r =
+            Math.sin(t * 0.55 + seed * 1.4) * rotAmp +
+            Math.cos(t * 0.21 + seed * 2.6) * rotAmp * 0.45;
+
+        const s =
+            1 +
+            Math.sin(t * 0.9 + seed * 1.8) * 0.045 +
+            Math.cos(t * 0.43 + seed * 0.95) * 0.02;
+
+        x.set(dx + driftX);
+        y.set(dy + driftY);
+        rotate.set(r);
+        scale.set(s);
+    });
+
     return (
-      <img
-        src={src}
-        alt={labelFromSrc(src)}
-        loading="lazy"
-        width={size}
-        height={size}
-        style={{
-          position: "absolute",
-          left: start.x,
-          top: start.y,
-          opacity: baseOpacity,
-          objectFit: "contain",
-          willChange: "transform, opacity",
-        }}
-      />
-    );
-  }
+        <div
+            className="absolute pointer-events-none"
+            style={{
+                left: `${baseXPercent}%`,
+                top: `${baseYPercent}%`,
+                transform: "translate(-50%, -50%)",
+            }}
+        >
+            <motion.div
+                style={{
+                    x,
+                    y,
+                    rotate,
+                    scale,
+                    opacity: reducedMotion ? 0.5 : opacity,
+                    width: size,
+                    height: size,
+                    filter: "drop-shadow(0 0 10px rgba(0, 220, 255, 0.10))",
+                }}
+            >
+                <div className="relative w-full h-full">
+                    <img
+                        src={logo.src}
+                        alt={logo.name}
+                        draggable={false}
+                        loading="lazy"
+                        className="w-full h-full object-contain select-none"
+                    />
 
-  return (
-    <motion.img
-      src={src}
-      alt={labelFromSrc(src)}
-      loading="lazy"
-      width={size}
-      height={size}
-      initial={{ x: start.x, y: start.y, opacity: baseOpacity, scale: 1 }}
-      animate={controls}
-      style={{
-        position: "absolute",
-        objectFit: "contain",
-        willChange: "transform, opacity",
-        pointerEvents: "none",
-      }}
-      // petit effet si jamais tu réactives pointer-events
-      whileHover={{ scale: 1.1 }}
-    />
-  );
+                    {logo.name === "SwiftUI" && (
+                        <span
+                            className="
+                absolute -bottom-1 -right-1
+                text-[8px] md:text-[9px]
+                font-semibold
+                px-1 py-[1px]
+                rounded
+                bg-cyan-500/20
+                text-cyan-200
+                border border-cyan-400/20
+                backdrop-blur-sm
+              "
+                        >
+                            UI
+                        </span>
+                    )}
+                </div>
+            </motion.div>
+        </div>
+    );
 }
 
-/* -------------------- Parent: gère viewport & seed -------------------- */
-const FloatingLogos = ({ numberOfLogos = 20 }) => {
-  const viewportRef = useRef({ w: 0, h: 0 });
-  const [, force] = useState(0);
+function Layer({ items, reducedMotion, className = "" }) {
+    return (
+        <div className={`absolute inset-0 ${className}`}>
+            {items.map((item) => (
+                <FloatingLogoItem
+                    key={item.id}
+                    item={item}
+                    reducedMotion={reducedMotion}
+                />
+            ))}
+        </div>
+    );
+}
 
-  // Mesure viewport une fois, puis on met à jour sur resize
-  useEffect(() => {
-    const measure = () => {
-      viewportRef.current.w = window.innerWidth;
-      viewportRef.current.h = window.innerHeight;
-      // on force un render au premier measure pour éviter le (0,0)
-      force((x) => x + 1);
-    };
-    measure();
-    window.addEventListener("resize", measure, { passive: true });
-    return () => window.removeEventListener("resize", measure);
-  }, []);
+export default function FloatingLogos({ numberOfLogos = 28 }) {
+    const reducedMotion = useReducedMotion();
 
-  const getViewport = () => viewportRef.current;
+    const desktopCount = Math.max(18, Math.min(40, numberOfLogos));
+    const mobileCount = Math.min(12, Math.max(6, Math.round(numberOfLogos / 2.5)));
 
-  const items = useMemo(() => {
-    const { w, h } = viewportRef.current;
-    if (!w || !h) return [];
+    const desktopItems = useMemo(
+        () => generatePositions(desktopCount, false),
+        [desktopCount]
+    );
 
-    // tailles/opacités variées
-    const sizes = Array.from({ length: numberOfLogos }, () => Math.round(rand(24, 50)));
-    const starts = seededPositions(numberOfLogos, w, h, 40); // seed très dispersé
+    const mobileItems = useMemo(
+        () => generatePositions(mobileCount, true),
+        [mobileCount]
+    );
 
-    return Array.from({ length: numberOfLogos }).map((_, i) => ({
-      id: i,
-      src: logos[i % logos.length],
-      size: sizes[i],
-      baseOpacity: 0.3,
-      start: starts[i],
-    }));
-  }, [numberOfLogos, viewportRef.current.w, viewportRef.current.h]);
-
-  if (!viewportRef.current.w || !viewportRef.current.h) return null;
-
-  return (
-    <div
-      aria-hidden
-      style={{
-        position: "absolute",
-        inset: 0,
-        overflow: "hidden",
-        pointerEvents: "none",
-        zIndex: 0,
-      }}
-    >
-      {items.map((it) => (
-        <FloatingLogoItem
-          key={it.id}
-          src={it.src}
-          size={it.size}
-          baseOpacity={it.baseOpacity}
-          start={it.start}
-          getViewport={getViewport}
-        />
-      ))}
-    </div>
-  );
-};
-
-export default FloatingLogos;
+    return (
+        <div
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
+        >
+            <Layer
+                items={desktopItems}
+                reducedMotion={reducedMotion}
+                className="hidden md:block"
+            />
+            <Layer
+                items={mobileItems}
+                reducedMotion={reducedMotion}
+                className="block md:hidden"
+            />
+        </div>
+    );
+}
