@@ -69,15 +69,6 @@ function ScrollToSection() {
 
 const scrollLink = (section) => `/?scrollTo=${section}`;
 
-const sectionByLabel = {
-    home: "home",
-    "mes projets": "projects",
-    formation: "formation",
-    "expériences": "experience",
-    "à propos": "about",
-    contact: "contact",
-};
-
 function App() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

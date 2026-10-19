@@ -7,9 +7,6 @@ import {
     useTransform,
 } from "framer-motion";
 
-const PHI = (1 + Math.sqrt(5)) / 2;
-const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-
 const icon = (name) =>
     `https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/${name}/${name}-original.svg`;
 
@@ -32,8 +29,6 @@ const technologies = [
     { name: "PostgreSQL", src: icon("postgresql") },
 ];
 
-// petit helper
-const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
 /**
  * Génère des positions sur toute la largeur,

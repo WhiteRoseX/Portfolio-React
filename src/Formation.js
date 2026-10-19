@@ -7,8 +7,6 @@ import {
     useReducedMotion,
 } from "framer-motion";
 
-import SectionBackground from "./SectionBackground";
-
 // =====================================================
 // FORMATIONS
 // =====================================================
